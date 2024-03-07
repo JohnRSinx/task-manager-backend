@@ -1,5 +1,6 @@
 const express = require("express");
 const TaskModel = require("../models/task.model");
+const { notFoundError } = require("../errors/mongodb.errors");
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.get("/:id", async (req, res) => {
         const taskId = req.params.id;
         const task = await TaskModel.findById(taskId);
         if (!task) {
-            return res.status(404).send("Essa task não foi encontrada.");
+            return notFoundError(this.res);
         }
         return res.status(200).send(task);
     } catch (error) {
@@ -42,6 +43,10 @@ router.patch("/:id", async (req, res) => {
 
         const taskToUpdate = await TaskModel.findById(taskId);
 
+        if (!taskToUpdate) {
+            return notFoundError(res);
+        }
+
         const allowedUpdates = ["isCompleted"];
         const requestedUpdates = Object.keys(taskData);
         for (update of requestedUpdates) {
@@ -61,7 +66,7 @@ router.delete("/:id", async (req, res) => {
         const taskId = req.params.id;
         const taskToDelete = await TaskModel.findById(taskId);
         if (!taskToDelete) {
-            return res.status(404).send("Está task não foi encontrada");
+            return notFoundError(this.res);
         }
         const deletedTask = await TaskModel.findByIdAndDelete(taskId);
         res.status(201).send(deletedTask);
