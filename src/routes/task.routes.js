@@ -1,6 +1,6 @@
 const express = require("express");
 const TaskModel = require("../models/task.model");
-const { notFoundError } = require("../errors/mongodb.errors");
+const { notFoundError, objectIdError } = require("../errors/mongodb.errors");
 
 const router = express.Router();
 
@@ -57,6 +57,9 @@ router.patch("/:id", async (req, res) => {
         await taskToUpdate.save();
         return res.status(200).send(taskToUpdate);
     } catch (error) {
+        if (error instanceof moongose.Error.CastError) {
+            return objectIdError(this.res);
+        }
         res.status(404).send(error.message);
     }
 });
